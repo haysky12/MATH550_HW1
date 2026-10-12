@@ -1,0 +1,142 @@
+\documentclass[answers,12pt]{exam}
+%\linespread{1.5}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage[version=4]{mhchem}
+\usepackage{multicol}
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{xspace}
+\usepackage{pgfplots}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\pagestyle{empty}
+
+
+\pagestyle{head}
+\runningheadrule
+\firstpageheader{\textbf{Math 550 HW1}}{\textbf{}}{\textbf{Name: Hayden Floyd}}
+%\runningheader{Math 307}{First Exam}{page \thepage\ of \numpages}
+
+\newcommand{\hor}[1]{\hspace{#1}}
+\newcommand{\ver}[1]{\vspace{#1}}
+\newcommand{\p}[1]{\left( {#1} \right)}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\sq}[1]{\left[ #1 \right]}
+\newcommand{\bra}[1]{\left< #1 \right>}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\mysol}[1]{\begin{solution} #1 \end{solution}}
+
+\printanswers
+\begin{document} 
+\textbf{System Definitions} \\
+The objective of this mini-project assignment is to simulate the Stokes equations in 2D on a staggered grid. Below are the equations we will be solving:
+\begin{equation}
+    \mu \nabla^2\textbf{u} - \nabla P = \textbf{b},
+\end{equation}
+\begin{equation}
+    \nabla \cdot \textbf{u} = \textbf{0}.
+\end{equation}
+To solve these, let's specify a few things.
+\begin{enumerate}
+    \item $\textbf{u}$ is the velocity vector of the fluid, which can be defined as $\textbf{u} = [U(x,y), V(x,y)]$.
+    \item $U(x,y), V(x,y)$ are the $x$- and $y$-components of the velocity, respectively.
+    \item $P(x,y)$ is the pressure of the system. This can be thought of as a scalar function that serves as a Lagrange multiplier to enforce the divergence-free constraint.
+    \item $\textbf{b}$ is the right hand side of our equation, where $\textbf{b} = [f(x,y), g(x,y)]$.
+    \item The viscosity of the fluid, $\mu$, will be constant. Specifically, let's set $\mu = 1$.
+\end{enumerate}
+Let's also define our boundary conditions. We will assume:
+\begin{enumerate}
+    \item periodic boundary conditions for $U$, $V$, and $P$ on the left and right boundaries,
+    \item no boundary conditions for $P$ on our top and bottom boundaries (why is this?),
+    \item Dirichlet boundary conditions for $U$ in the $y$-direction, where $U=0$ on our top and bottom boundaries,
+    \item and inflow/outflow (Dirichlet) conditions for $V$ in the $y$ direction, where $V = -3.5$ units on our top and bottom boundaries.
+\end{enumerate}
+Figure 1 shows a cartoon of the grid as well as the boundary conditions and unknowns. \\\\
+\textbf{Simulation Solution Process}\\\\
+To solve these equations, we will discretize them on our staggered (MAC) grid and write the discrete unknowns and their boundary conditions as a sparse saddle point system. Thus, we can rewrite our Navier-Stokes equation as this following system:\\
+\begin{center}
+\begin{bmatrix}
+    \mu \mathcal{L}_u & 0 & -G_x \\
+    0 & \mu \mathcal{L}_v & -G_y \\
+    D_x & D_y & 0
+\end{bmatrix} 
+\begin{bmatrix}
+    \textbf{U} \\
+    \textbf{V} \\
+    \textbf{P}
+\end{bmatrix} = 
+\begin{bmatrix}
+    \textbf{f}_{bc} \\
+    \textbf{g}_{bc} \\
+    \textbf{h}_{bc}
+\end{bmatrix}, \\
+\end{center}
+where:
+\begin{enumerate}
+    \item $\mathcal{L}_U$ is the Laplacian operator on the $U$ grid,
+    \item $\mathcal{L}_V$ is the Laplacian operator on the $V$ grid,
+    \item $G_x$ is the $x$-component of the gradient operator on the $P$ grid,
+    \item $G_y$ is the $y$-component of the gradient operator on the $P$ grid,
+    \item $D_x$ is the $x$-component of the divergence operator on the $U$ grid,
+    \item and $D_y$ is the $y$-component of the divergence operator on the $V$ grid.
+\end{enumerate}
+
+	\begin{questions}
+		\question \textbf{Problem 1: Solve Stokes} \\
+        We will use the method of manufactured solutions to verify that our system is operating as expected. So, let's define analytical functions that align with our chosen boundary conditions:
+        \begin{equation}
+            U_{an}(x,y)=\sin(2\pi y) \sin (2\pi x)
+        \end{equation}
+        \begin{equation}
+            V_{an}(x,y) = -3.5 + \cos(2\pi x)[\cos(2\pi y) - 1]
+        \end{equation}
+        \begin{equation}
+            P_{an}(x,y) = \sin(2\pi y) \cos(2\pi x)
+        \end{equation}
+        From these, we can define our right hand side to force our solutions to fit these equations and solve our system using a standard backslash technique (for $Ax=b, A\diagdown b = x$). We can verify our solution by checking the magnitude of $\textbf{u}$, which we denote as $||\textbf{u}|| = \sqrt{U^2 + V^2}$. See Figure 2 for the solution plot. \\ \\
+        Note as well that $P_{sol}$ is not uniquely determined, so you will have to subtract off the mean of $P_{sol}$ from your solution when comparing to $P_{an}$ in the next section.
+        
+        \mysol{
+
+        
+        }
+        
+\question \textbf{Problem 2: Error Analysis} \\
+Once the system has been solved, we can define the error of the solution, since we know that the solution should fit the forms described by equations $3$, $4$, and $5$. To do this, iterate over an increasing number of grid points ($Nx = Ny$) and show that we see second-order error decreases in our numerical solution ($U_{num}$) compared to our analytical solution ($U_{an}$). Refer to Figure 3 for an example of the expected error plots. We will calculate error using the following norm equation:
+\begin{equation}
+    \text{err}_U = \frac{||U_{num} - U_{an}||_2}{||U_{an}||_2}
+\end{equation}
+\mysol{
+
+}
+
+
+\question \textbf{Problem 3: Charlie's Rule} \\
+Charlie Peskin (the inventor of the IBM) says that you should never just stop once you have a cool code, \textbf{the best part is to play around with it.} So do something fun with your code and show it off! The following are a few ideas:
+\begin{enumerate}
+    \item The 'Stokes Darcy' equations are simple modification of the Stokes equations that let us model flow through porous media. Read about these equations and try simulating flow through some kind of porous microstructure.
+    \item Try combining your code with the Immersed Boundary (IB) code from class to look at fluid flow with point like particles.
+    \item Your code will be much more flexible and robust if you make it work (and test it!) for several different kinds of boundary conditions.
+    \item Using a direct solver ('backslash' in MATLAB) works great for this example, but it won't for bigger problems. Explore other linear solvers e.g. GMRES to speed up your code.
+\end{enumerate}
+
+    \mysol{
+    
+    }
+
+
+
+	\end{questions}
+
+\end{document}
