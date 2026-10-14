@@ -1,0 +1,294 @@
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Define Constants %%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Domain in x (periodic)
+x_start = 0;
+x_end = 1;
+
+% Domain in y (walls)
+y_start = 0;
+y_end = 1;
+
+% viscocity
+mu = 1;
+
+% Number of cells
+Nx = 50;    % in x
+Ny = Nx;    % in y
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Method of Manufactured Solutions %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+U_an = @(x, y) sin(2.*pi.*y) .* sin(2.*pi.*x);
+V_an = @(x, y) -3.5 + cos(2.*pi.*x) .* (cos(2.*pi.*y) - 1);
+P_an = @(x, y) sin(2.*pi.*y) .* cos(2.*pi.*x);
+
+f = @(x,y) (-8*pi^2 + 2*pi) .* sin(2.*pi.*y) .* sin(2.*pi.*x);
+g = @(x,y) (-8*pi^2 - 2*pi) .* cos(2.*pi.*y) .* cos(2.*pi.*x) + (4.*pi.^2 .* cos(2.*pi.*x));
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Grid Initialization %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Grid Spacings
+dx = (x_end-x_start) / Nx;
+dy = (y_end-y_start) / Ny;
+
+% P at cell centers
+x_P = (linspace(x_start, Nx-1+x_start, Nx) + 0.5) .* dx;
+y_P = (linspace(y_start, Ny-1+y_start, Ny) + 0.5) .* dy;
+
+% U on east/west faces
+x_U = (linspace(x_start, Nx-1+x_start, Nx)) .* dx;
+y_U = y_P;
+
+% V on north/south faces
+x_V = x_P;
+y_V = (linspace(y_start+1, Ny+y_start-1, Ny-1)) .* dy;
+
+% Number of unknowns
+nU = Nx * Ny;           % we know right BC (periodic)
+nV = Nx * (Ny + 1);     % we know top and bottom BCs
+nP = Nx * Ny;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Build Operators and RHS %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Operators as Sparse Matrices       [ADD HERE]
+val = [];
+row = [];
+col = [];
+
+b = [];
+
+% Lu
+for j = 1:Ny
+    for i = 1:Nx
+        k = i + j*Nx;
+        if j == 1
+            if i == 1           % top left corner
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            elseif i == Nx    % top right corner  
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            else                % top BC
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            end
+            b = [b, 0];
+        elseif j == Ny
+            if i == 1           % bottom left corner
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            elseif i == Nx    % bottom right corner
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            else                % bottom BC
+                row = [row, k]; col = [col, k]; val = [val, -5];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            end
+            b = [b, 0];
+        else
+            if i == 1           % left BC
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            elseif i == Nx    % right BC
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            else                % internal points
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+            end
+            b = [b, dx^2 * f((i-1)*dx,(j-(1/2))*dy)];
+        end
+    end
+end
+
+Lu = sparse(row, col, val);
+
+% Lv
+val = [];
+row = [];
+col = [];
+
+for j = 1:Ny+1
+    for i = 1:Nx
+        k = i + j*Nx;
+        if j == 1 || j == Ny+1      % top/bottom rows
+            row = [row, k]; col = [col, k]; val = [val, 1];
+            b = [b, -3.5];
+        else
+            if i == 1               % left BC
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            elseif i == Nx          % right BC
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            else                    % internal points
+                row = [row, k]; col = [col, k]; val = [val, -4];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+            end
+            b = [b, dx^2 * g((i-1+(1/2))*dx, (j-1)*dy)];
+        end
+    end
+end
+
+Lv = sparse(row, col, val);
+
+% Gx
+val = [];
+row = [];
+col = [];
+
+for j = 1:Ny
+    for i = 1:Nx
+        k = i + j*Nx;
+        if i == 1       % left BC
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k+1]; val = [val, -1];
+            row = [row, k]; col = [col, k+Nx-2]; val = [val, -1];
+        elseif i == Nx  % right BC
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k-Nx+2]; val = [val, -1];
+            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        else            % internal points
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k+1]; val = [val, -1];
+            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        end
+    end
+end
+
+Gx = sparse(row, col, val);
+
+% Gy
+val = [];
+row = [];
+col = [];
+
+for j = 1:Ny+1
+    for i = 1:Nx
+        k = i + j*Nx;
+        if i == 1       % left BC
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k+1]; val = [val, -1];
+            row = [row, k]; col = [col, k+Nx-2]; val = [val, -1];
+        elseif i == Nx  % right BC
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k-Nx+2]; val = [val, -1];
+            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        else            % internal points
+            row = [row, k]; col = [col, k]; val = [val, 2];
+            row = [row, k]; col = [col, k+1]; val = [val, -1];
+            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        end
+    end
+end
+
+Gy = sparse(row, col, val);
+
+% Dx
+val = [];
+row = [];
+col = [];
+
+for j = 1:Ny
+    for i = 1:Nx
+        k = i + j*Nx;
+        if j == 1
+            row = [row, k]; col = [col, k]; val = [val, -2];
+            row = [row, k]; col = [col, k+1]; val = [val, 1];
+            row = [row, k]; col = [col, k+Nx+3]; val = [val, 1];
+        elseif j == Nx
+            row = [row, k]; col = [col, k]; val = [val, -2];
+            row = [row, k]; col = [col, k-Nx+1]; val = [val, 1];
+            row = [row, k]; col = [col, k-1]; val = [val, 1];
+        else
+            row = [row, k]; col = [col, k]; val = [val, -2];
+            row = [row, k]; col = [col, k+1]; val = [val, 1];
+            row = [row, k]; col = [col, k-1]; val = [val, 1];
+        end
+        b = [b, 0];
+    end
+end
+
+Dx = sparse(row, col, val);
+
+% Dy
+val = [];
+row = [];
+col = [];
+
+for j = 1:Ny
+    for i = 1:Nx
+        k = i + j*Nx;
+        if j == 1 || j == Ny
+            row = [row, k]; col = [col, k]; val = [val, 1];
+        else
+            if i == 1
+                row = [row, k]; col = [col, k]; val = [val, -2];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1];
+            elseif i == Nx
+                row = [row, k]; col = [col, k]; val = [val, -2];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+            else
+                row = [row, k]; col = [col, k]; val = [val, -2];
+                row = [row, k]; col = [col, k+1]; val = [val, 1];
+                row = [row, k]; col = [col, k-1]; val = [val, 1];
+            end
+        end
+    end
+end
+
+Dy = sparse(row, col, val);
+
+% Matrix Construction
+A = blkdiag([mu.*Lu, zeros(nV, nV), -Gx], ...               % TO DO: Change zero matrices
+             [zeros(nV+Nx,nV+Nx), mu.*Lv, -Gy], ...         %        to nU, nV, and nP
+             [Dx, Dy, zeros(nV, nV)]);                      % Bug with b != height of A
+
+rhs = b';
+
+%%%%%%%%%%%%%
+%%% Solve %%%
+%%%%%%%%%%%%%
+
+sol = A \ rhs;
