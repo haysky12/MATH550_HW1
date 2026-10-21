@@ -1,3 +1,4 @@
+Problem 1: Solve Stokes
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% Define Constants %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,7 +49,7 @@ y_U = y_P;
 
 % V on north/south faces
 x_V = x_P;
-y_V = (linspace(y_start+1, Ny+y_start-1, Ny-1)) .* dy;
+y_V = (linspace(y_start+1, Ny+y_start-1, Ny+1)) .* dy;
 
 % Number of unknowns
 nU = Nx * Ny;           % we know right BC (periodic)
@@ -66,67 +67,69 @@ col = [];
 
 b = [];
 
+bu = [];
+bu2 = [];
 % Lu
 for j = 1:Ny
     for i = 1:Nx
-        k = i + j*Nx;
+        k = i + (j-1)*Nx;
         if j == 1
             if i == 1           % top left corner
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
-            elseif i == Nx    % top right corner  
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
+            elseif i == Nx     % top right corner  
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
             else                % top BC
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
             end
             b = [b, 0];
         elseif j == Ny
             if i == 1           % bottom left corner
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             elseif i == Nx    % bottom right corner
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             else                % bottom BC
-                row = [row, k]; col = [col, k]; val = [val, -5];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -5/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             end
             b = [b, 0];
         else
             if i == 1           % left BC
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             elseif i == Nx    % right BC
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k-Nx+3]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             else                % internal points
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
             end
-            b = [b, dx^2 * f((i-1)*dx,(j-(1/2))*dy)];
+            b = [b, f((i-1),(j+(1/2)))];
         end
     end
 end
@@ -138,35 +141,37 @@ val = [];
 row = [];
 col = [];
 
+bv = [];
+
 for j = 1:Ny+1
     for i = 1:Nx
-        k = i + j*Nx;
+        k = i + (j-1)*Nx;
         if j == 1 || j == Ny+1      % top/bottom rows
             row = [row, k]; col = [col, k]; val = [val, 1];
             b = [b, -3.5];
         else
             if i == 1               % left BC
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
             elseif i == Nx          % right BC
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
             else                    % internal points
-                row = [row, k]; col = [col, k]; val = [val, -4];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
-                row = [row, k]; col = [col, k-Nx]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx]; val = [val, 1];
+                row = [row, k]; col = [col, k]; val = [val, -4/(dx^2)];
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k-Nx]; val = [val, 1/(dx^2)];
+                row = [row, k]; col = [col, k+Nx]; val = [val, 1/(dx^2)];
             end
-            b = [b, dx^2 * g((i-1+(1/2))*dx, (j-1)*dy)];
+            b = [b, g((i-(1/2)), (j))];
         end
-    end
+    end 
 end
 
 Lv = sparse(row, col, val);
@@ -178,19 +183,31 @@ col = [];
 
 for j = 1:Ny
     for i = 1:Nx
-        k = i + j*Nx;
-        if i == 1       % left BC
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k+1]; val = [val, -1];
-            row = [row, k]; col = [col, k+Nx-2]; val = [val, -1];
-        elseif i == Nx  % right BC
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k-Nx+2]; val = [val, -1];
-            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        k = i + (j-1)*Nx;
+        if j == 1       % left BC
+            if i == 1
+                row = [row, k]; col = [col, k+1]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1/(2*dx)];
+            else
+                row = [row, k+1]; col = [col, k]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k-1]; col = [col, k]; val = [val, 1/(2*dx)];
+            end
+        elseif j == Ny  % right BC
+            if i == Nx
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(2*dx)];
+            else
+                row = [row, k+1]; col = [col, k]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k-1]; col = [col, k]; val = [val, 1/(2*dx)];
+            end
         else            % internal points
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k+1]; val = [val, -1];
-            row = [row, k]; col = [col, k-1]; val = [val, -1];
+            row = [row, k]; col = [col, k+1]; val = [val, -1/(2*dx)];
+            row = [row, k]; col = [col, k]; val = [val, 0];
+            row = [row, k]; col = [col, k-1]; val = [val, 1/(2*dx)];
         end
     end
 end
@@ -204,19 +221,23 @@ col = [];
 
 for j = 1:Ny+1
     for i = 1:Nx
-        k = i + j*Nx;
-        if i == 1       % left BC
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k+1]; val = [val, -1];
-            row = [row, k]; col = [col, k+Nx-2]; val = [val, -1];
-        elseif i == Nx  % right BC
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k-Nx+2]; val = [val, -1];
-            row = [row, k]; col = [col, k-1]; val = [val, -1];
+        k = i + ((j-1)*Nx);
+        if j == 1       % left BC
+            if i == 1
+                row = [row, k+1]; col = [col, k]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k+Ny-1]; col = [col, k]; val = [val, 1/(2*dx)];
+            else
+                row = [row, k+1]; col = [col, k]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k-1]; col = [col, k]; val = [val, 1/(2*dx)];
+            end
+        elseif j == Ny+1 % right BC
+            row = [row, k]; col = [col, k-Nx]; val = [val, 0];
         else            % internal points
-            row = [row, k]; col = [col, k]; val = [val, 2];
-            row = [row, k]; col = [col, k+1]; val = [val, -1];
-            row = [row, k]; col = [col, k-1]; val = [val, -1];
+            row = [row, k+1]; col = [col, k]; val = [val, -1/(2*dx)];
+            row = [row, k]; col = [col, k]; val = [val, 0];
+            row = [row, k-1]; col = [col, k]; val = [val, 1/(2*dx)];
         end
     end
 end
@@ -228,21 +249,35 @@ val = [];
 row = [];
 col = [];
 
+bp = [];
+
 for j = 1:Ny
     for i = 1:Nx
-        k = i + j*Nx;
+        k = i + (j-1)*Nx;
         if j == 1
-            row = [row, k]; col = [col, k]; val = [val, -2];
-            row = [row, k]; col = [col, k+1]; val = [val, 1];
-            row = [row, k]; col = [col, k+Nx+3]; val = [val, 1];
-        elseif j == Nx
-            row = [row, k]; col = [col, k]; val = [val, -2];
-            row = [row, k]; col = [col, k-Nx+1]; val = [val, 1];
-            row = [row, k]; col = [col, k-1]; val = [val, 1];
+            if i == 1
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k+Nx-2]; val = [val, -1/(2*dx)];
+            else
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k-1]; val = [val, -1/(2*dx)];
+            end
+        elseif j == Ny
+            if i == Nx
+                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k-1]; val = [val, -1/(2*dx)];
+            else
+                row = [row, k]; col = [col, k+1]; val = [val, 1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k-1]; val = [val, -1/(2*dx)];
+            end
         else
-            row = [row, k]; col = [col, k]; val = [val, -2];
-            row = [row, k]; col = [col, k+1]; val = [val, 1];
-            row = [row, k]; col = [col, k-1]; val = [val, 1];
+            row = [row, k]; col = [col, k+1]; val = [val, 1/(2*dx)];
+            row = [row, k]; col = [col, k]; val = [val, 0];
+            row = [row, k]; col = [col, k-1]; val = [val, -1/(2*dx)];
         end
         b = [b, 0];
     end
@@ -256,24 +291,24 @@ row = [];
 col = [];
 
 for j = 1:Ny
-    for i = 1:Nx
-        k = i + j*Nx;
-        if j == 1 || j == Ny
-            row = [row, k]; col = [col, k]; val = [val, 1];
-        else
-            if i == 1
-                row = [row, k]; col = [col, k]; val = [val, -2];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k+Nx-2]; val = [val, 1];
-            elseif i == Nx
-                row = [row, k]; col = [col, k]; val = [val, -2];
-                row = [row, k]; col = [col, k-Nx+2]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
+    for i = 1:Nx+1
+        k = j + ((i-1)*Nx);
+        if i == 1
+            if j == 1
+                row = [row, k]; col = [col, k+1]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k+Nx-1]; val = [val, 1/(2*dx)];
             else
-                row = [row, k]; col = [col, k]; val = [val, -2];
-                row = [row, k]; col = [col, k+1]; val = [val, 1];
-                row = [row, k]; col = [col, k-1]; val = [val, 1];
+                row = [row, k]; col = [col, k+1]; val = [val, -1/(2*dx)];
+                row = [row, k]; col = [col, k]; val = [val, 0];
+                row = [row, k]; col = [col, k-1]; val = [val, 1/(2*dx)];
             end
+        elseif i == Nx+1
+                row = [row, k-Ny]; col = [col, k]; val = [val, 0];
+        else
+            row = [row, k]; col = [col, k+1]; val = [val, -1/(2*dx)];
+            row = [row, k]; col = [col, k]; val = [val, 0];
+            row = [row, k]; col = [col, k-1]; val = [val, 1/(2*dx)];
         end
     end
 end
@@ -281,9 +316,9 @@ end
 Dy = sparse(row, col, val);
 
 % Matrix Construction
-A = blkdiag([mu.*Lu, zeros(nV, nV), -Gx], ...               % TO DO: Change zero matrices
-             [zeros(nV+Nx,nV+Nx), mu.*Lv, -Gy], ...         %        to nU, nV, and nP
-             [Dx, Dy, zeros(nV, nV)]);                      % Bug with b != height of A
+A = [blkdiag([mu.*Lu, zeros(nU, nV), -Gx]); ...
+     blkdiag([zeros(nV,nU), mu.*Lv, -Gy]); ...
+     blkdiag([Dx, Dy, zeros(nP, nP)])];
 
 rhs = b';
 
@@ -292,3 +327,21 @@ rhs = b';
 %%%%%%%%%%%%%
 
 sol = A \ rhs;
+
+% Put U, V, and P on their grids
+U = reshape(sol(1:nU), [Ny, Nx]);
+V = reshape(sol(nU+1:nU+nV), [Ny+1, Nx]);
+P = reshape(sol(nU+nV+1:nU+nV+nP), [Ny, Nx]);
+
+% Zero-Mean Pressure
+P = P - mean(P);
+
+% Interpolate U and V to Cell Centers
+U_num = 0.5 % ADD HERE
+V_num = 0.5 % ADD HERE
+
+%%%%%%%%%%%%
+%%% Plot %%%
+%%%%%%%%%%%%
+
+
