@@ -1,4 +1,4 @@
-Problem 1: Solve Stokes
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% Define Constants %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -337,11 +337,68 @@ P = reshape(sol(nU+nV+1:nU+nV+nP), [Ny, Nx]);
 P = P - mean(P);
 
 % Interpolate U and V to Cell Centers
-U_num = 0.5 % ADD HERE
-V_num = 0.5 % ADD HERE
+U_num = [];
+for i = 1:Nx
+    U_row = [];
+    for j = 1:Ny
+        if i == Nx
+            U_row = [U_row, 0.5 * (U(j,i) + U(j, 1))];
+        else
+            U_row = [U_row, 0.5 * (U(j,i) + U(j, i+1))];
+        end
+    end
+    U_num = [U_num; U_row];
+end
+        
+V_num = [];
+for j = 1:Ny
+    V_row = [];
+    for i = 1:Nx
+        if j == Ny
+            V_row = [V_row, 0.5 * (U(j,i) + U(1, i))];
+        else
+            V_row = [V_row, 0.5 * (U(j,i) + U(j+1, i))];
+        end
+    end
+    V_num = [V_num; V_row];
+end
 
 %%%%%%%%%%%%
 %%% Plot %%%
 %%%%%%%%%%%%
 
+x = linspace(0, 1, Nx+1);
+y = linspace(0, 1, Ny+1);
 
+
+% plot analytical solution
+U_a = [];
+V_a = [];
+for j = 1:Ny+1
+    U_ac = [];
+    V_ac = [];
+    for i = 1:Nx+1
+        U_ij = U_an(x(i), y(j));
+        V_ij = V_an(x(i), y(j));
+        U_ac = [U_ac, U_ij];
+        V_ac = [V_ac, V_ij];
+    end
+    U_a = [U_a; U_ac];
+    V_a = [V_a; V_ac];
+end
+
+[X, Y] = meshgrid(x, y);
+
+hold on
+pcolor(x, y, sqrt(U_a.^2 + V_a.^2), 'EdgeColor','interp')
+colormap(slanCM('ice'))
+colorbar()
+s = streamslice(X, Y, U_a, V_a);
+set(s, 'Color', 'w')
+
+% title, labels, and legend
+xlabel('x', 'FontWeight','bold')
+ylabel('y','FontWeight','bold')
+title('Analytical Solution for Magnitude of u','FontSize',14,'FontWeight','bold')
+
+hold off
